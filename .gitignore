@@ -1,0 +1,4 @@
+# .NET Core build folders
+APICatalogo/bin/
+APICatalogo/obj/
+APICatalogo/Catalogo.db
