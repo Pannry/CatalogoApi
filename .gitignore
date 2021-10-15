@@ -1,4 +1,5 @@
 # .NET Core build folders
+.vs
 APICatalogo/bin/
 APICatalogo/obj/
 APICatalogo/Catalogo.db

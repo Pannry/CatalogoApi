@@ -8,9 +8,27 @@ using APICatalogo.Context;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Http;
 using System.Text.Json.Serialization;
+using APICatalogo.Filters;
+using APICatalogo.Repository;
 
 namespace APICatalogo
 {
+    /*
+        Model Bidings: 
+        [BindRequired]: Força a entrada de parametro. 
+            Ex: public ActionResult<Produto> Get(int id, [BindRequired] string nome);
+        [BindNever]: Não vincula a info ao parametro. É utilizado nas propriedades das classes models.
+
+        Fonte de dados dos parametros, o uso é semelhante ao BindRequired:
+        [FromForm],
+        [FromRoute],
+        [FromQuery],
+        [FromHeader],
+        [FromBody],
+        [FromServices]
+        
+     */
+
     public class Startup
     {
         public Startup(IConfiguration configuration)
@@ -40,9 +58,13 @@ namespace APICatalogo
             // dotnet core 5
             services.AddControllers().AddJsonOptions(x =>
                x.JsonSerializerOptions.ReferenceHandler = ReferenceHandler.Preserve);
+
+            services.AddScoped<ApiLoggingFilter>();
+            services.AddScoped<IUnitOfWork, UnitOfWork>();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
+        // pipeline de Middleware
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
         {
             if (env.IsDevelopment())

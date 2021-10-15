@@ -4,6 +4,10 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Mvc;
 using APICatalogo.Context;
 using APICatalogo.Models;
+using Microsoft.Extensions.Configuration;
+using APICatalogo.Filters;
+using System;
+using APICatalogo.Repository;
 
 namespace APICatalogo.Controllers
 {
@@ -11,20 +15,37 @@ namespace APICatalogo.Controllers
     [Route("api/[Controller]")]
     public class CategoriasController : ControllerBase
     {
-        private readonly AppDbContext _context;
-        public CategoriasController(AppDbContext contexto)
+        private readonly IUnitOfWork _uof;
+        private readonly IConfiguration _configuration;
+        public CategoriasController(IUnitOfWork contexto, IConfiguration configuration)
         {
-            _context = contexto;
+            _uof = contexto;
+            _configuration = configuration;
         }
 
+        [HttpGet("config")]
+        [ServiceFilter(typeof(ApiLoggingFilter))]
+        public string Config()
+        {
+            // Exemplo de exception global
+            // throw new Exception("Erro Customizado");
+
+            // Exemplo da utilização do arquivo de configuração
+            return _configuration["ConexaoSqlite:SqliteConnectionString"];
+        }
+
+        // Exemplo de ModelBind para injeção de dependência, util para quando apenas um método
+        // precisar do serviço
         [HttpGet("produtos")]
-        public ActionResult<IEnumerable<Categoria>> GetCategoriasProdutos()
+        public ActionResult<IEnumerable<Categoria>> GetCategoriasProdutos([FromServices]AppDbContext exemploDeBindServiceContext)
         {
             try
             {
-                return _context.Categorias.Include(x => x.Produtos).ToList();
+                return _uof.CategoriaRepository.GetCategoriasProdutos().ToList();
+                // return exemploDeBindServiceContext.Categorias.Include(x => x.Produtos).ToList();
+                // return _context.Categorias.Include(x => x.Produtos).ToList();
             }
-            catch (System.Exception)
+            catch (Exception)
             {
                 return Problem("Erro ao tentar obter os produtos das categorias do banco de dados");
             }
@@ -35,9 +56,9 @@ namespace APICatalogo.Controllers
         {
             try
             {
-                return _context.Categorias.AsNoTracking().ToList();
+                return _uof.CategoriaRepository.Get().ToList();
             }
-            catch (System.Exception)
+            catch (Exception)
             {
                 return Problem("Erro ao tentar obter as categorias do banco de dados");
             }
@@ -48,14 +69,14 @@ namespace APICatalogo.Controllers
         {
             try
             {
-                var categoria = _context.Categorias.AsNoTracking().FirstOrDefault(p => p.Id == id);
+                var categoria = _uof.CategoriaRepository.GetById(p => p.Id == id);
                 if (categoria == null)
                 {
                     return NotFound($"A categoria id={id} não foi encontrada");
                 }
                 return categoria;
             }
-            catch (System.Exception)
+            catch (Exception)
             {
                 return Problem("Erro ao tentar obter a categoria do banco de dados");
             }
@@ -66,11 +87,11 @@ namespace APICatalogo.Controllers
         {
             try
             {
-                _context.Categorias.Add(categoria);
-                _context.SaveChanges();
+                _uof.CategoriaRepository.Add(categoria);
+                _uof.Commit();
                 return new CreatedAtRouteResult("ObterCategoria", new { id = categoria.Id }, categoria);
             }
-            catch (System.Exception)
+            catch (Exception)
             {
                 return Problem("Erro ao tentar criar uma nova categoria");
             }
@@ -86,11 +107,11 @@ namespace APICatalogo.Controllers
                     return BadRequest($"Não foi possível atualizar a categoria id={id}");
                 }
 
-                _context.Entry(categoria).State = EntityState.Modified;
-                _context.SaveChanges();
+                _uof.CategoriaRepository.Update(categoria);
+                _uof.Commit();
                 return Ok($"Categoria com id={id} foi atualizada com sucesso");
             }
-            catch (System.Exception)
+            catch (Exception)
             {
                 return Problem($"Não foi possível atualizar a categoria id={id}");
             }
@@ -101,18 +122,18 @@ namespace APICatalogo.Controllers
         {
             try
             {
-                var categoria = _context.Categorias.FirstOrDefault(p => p.Id == id);
+                var categoria = _uof.CategoriaRepository.GetById(p => p.Id == id);
 
                 if (categoria == null)
                 {
                     return NotFound($"A categoria id={id} não foi encontrada");
                 }
 
-                _context.Categorias.Remove(categoria);
-                _context.SaveChanges();
+                _uof.CategoriaRepository.Delete(categoria);
+                _uof.Commit();
                 return categoria;
             }
-            catch (System.Exception)
+            catch (Exception)
             {
                 return Problem($"Erro ao excluir a categoria de id={id}");
             }

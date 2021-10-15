@@ -1,4 +1,5 @@
-﻿using System;
+﻿using APICatalogo.Validations;
+using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel.DataAnnotations;
@@ -32,6 +33,7 @@ namespace APICatalogo.Models
 
         [Required]
         [MaxLength(80)]
+        [PrimeiraLetraUppercase]
         public string Nome { get; set; }
         
         [Required]

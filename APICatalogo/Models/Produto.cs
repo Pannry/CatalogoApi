@@ -14,7 +14,7 @@ namespace APICatalogo.Models
         {
         }
 
-        public Produto(int id, string nome, string descricao, decimal preco, string imagemUrl, float estoque, DateTime dataCadastro, int categoriaId)
+        public Produto(int id, string nome, string descricao, float preco, string imagemUrl, float estoque, DateTime dataCadastro, int categoriaId)
         {
             Id = id;
             Nome = nome;
@@ -38,7 +38,7 @@ namespace APICatalogo.Models
         public string Descricao { get; set; }
         
         [Required]
-        public decimal Preco { get; set; }
+        public float Preco { get; set; }
         
         [Required]
         [MaxLength(300)]

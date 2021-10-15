@@ -1,10 +1,9 @@
-﻿using System;
-using System.Linq;
-using System.Collections.Generic;
+﻿using APICatalogo.Models;
+using APICatalogo.Repository;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
-using APICatalogo.Context;
-using APICatalogo.Models;
+using System;
+using System.Collections.Generic;
+using System.Linq;
 
 namespace APICatalogo.Controllers
 {
@@ -12,10 +11,23 @@ namespace APICatalogo.Controllers
     [Route("api/[Controller]")]
     public class ProdutosController : ControllerBase
     {
-        private readonly AppDbContext _context;
-        public ProdutosController(AppDbContext contexto)
+        private readonly IUnitOfWork _uof;
+        public ProdutosController(IUnitOfWork contexto)
         {
-            _context = contexto;
+            _uof = contexto;
+        }
+
+        [HttpGet("menorpreco")]
+        public ActionResult<IEnumerable<Produto>> GetProdutosPorPreco()
+        {
+            try
+            {
+                return _uof.ProdutoRepository.GetProdutosPorPreco().ToList();
+            }
+            catch (Exception e)
+            {
+                return Problem($"Erro ao tentar obter os produtos do banco de dados\n{e.Message}");
+            }
         }
 
         [HttpGet]
@@ -23,7 +35,7 @@ namespace APICatalogo.Controllers
         {
             try
             {
-                return _context.Produtos.AsNoTracking().ToList();
+                return _uof.ProdutoRepository.Get().ToList();
             }
             catch (Exception)
             {
@@ -36,7 +48,7 @@ namespace APICatalogo.Controllers
         {
             try
             {
-                var produto = _context.Produtos.AsNoTracking().FirstOrDefault(p => p.Id == id);
+                var produto = _uof.ProdutoRepository.GetById(p => p.Id == id);
                 if (produto == null)
                 {
                     return NotFound("Produto nao encontrado.");
@@ -62,8 +74,8 @@ namespace APICatalogo.Controllers
                 //    return BadRequest(ModelState);
                 //}
 
-                _context.Produtos.Add(produto);
-                _context.SaveChanges();
+                _uof.ProdutoRepository.Add(produto);
+                _uof.Commit();
                 return new CreatedAtRouteResult("ObterProduto", new { id = produto.Id }, produto);
             }
             catch (Exception)
@@ -82,8 +94,8 @@ namespace APICatalogo.Controllers
                     return BadRequest($"Não foi possível atualizar o produto id={id}");
                 }
 
-                _context.Entry(produto).State = EntityState.Modified;
-                _context.SaveChanges();
+                _uof.ProdutoRepository.Update(produto);
+                _uof.Commit();
                 return Ok();
             }
             catch (Exception)
@@ -97,7 +109,7 @@ namespace APICatalogo.Controllers
         {
             try
             {
-                var produto = _context.Produtos.FirstOrDefault(p => p.Id == id);
+                var produto = _uof.ProdutoRepository.GetById(p => p.Id == id);
                 // Funciona apenas caso o Id seja Chave primaria, o Find primeiro procura
                 // em memória, e caso não encontre, busca no banco.
                 // var produto = _context.Produtos.Find(id);
@@ -105,16 +117,15 @@ namespace APICatalogo.Controllers
                 if (produto == null)
                 {
                     return NotFound($"O produto id={id} não foi encontrada");
-                    return NotFound();
                 }
 
-                _context.Produtos.Remove(produto);
-                _context.SaveChanges();
+                _uof.ProdutoRepository.Delete(produto);
+                _uof.Commit();
                 return produto;
             }
             catch (Exception)
             {
-                return Problem($"Erro ao excluir a categoria de id={id}");
+                return Problem($"Erro ao excluir o produto de id={id}");
             }
         }
     }
