@@ -1,13 +1,16 @@
-﻿using System.Linq;
+﻿using System;
+using System.Linq;
+using System.Text.Json;
 using System.Collections.Generic;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Configuration;
+using AutoMapper;
 using APICatalogo.Context;
 using APICatalogo.Models;
-using Microsoft.Extensions.Configuration;
 using APICatalogo.Filters;
-using System;
 using APICatalogo.Repository;
+using APICatalogo.Pagination;
+using APICatalogo.DTOs;
 
 namespace APICatalogo.Controllers
 {
@@ -17,10 +20,12 @@ namespace APICatalogo.Controllers
     {
         private readonly IUnitOfWork _uof;
         private readonly IConfiguration _configuration;
-        public CategoriasController(IUnitOfWork contexto, IConfiguration configuration)
+        private readonly IMapper _mapper;
+        public CategoriasController(IUnitOfWork contexto, IConfiguration configuration, IMapper mapper)
         {
             _uof = contexto;
             _configuration = configuration;
+            _mapper = mapper;
         }
 
         [HttpGet("config")]
@@ -52,11 +57,24 @@ namespace APICatalogo.Controllers
         }
 
         [HttpGet]
-        public ActionResult<IEnumerable<Categoria>> Get()
+        public ActionResult<IEnumerable<CategoriaDTO>> Get([FromQuery] CategoriasParameters categoriasParameters)
         {
             try
             {
-                return _uof.CategoriaRepository.Get().ToList();
+                var produtos = _uof.CategoriaRepository.GetCategorias(categoriasParameters);
+                var metadata = new
+                {
+                    produtos.TotalCount,
+                    produtos.PageSize,
+                    produtos.CurrentPage,
+                    produtos.TotalPages,
+                    produtos.HasNext,
+                    produtos.HasPrevious,
+                };
+
+                Response.Headers.Add("X-Pagination", JsonSerializer.Serialize(metadata));
+                var produtosDTO = _mapper.Map<List<CategoriaDTO>>(produtos);
+                return produtosDTO;
             }
             catch (Exception)
             {

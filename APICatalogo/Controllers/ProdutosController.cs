@@ -1,9 +1,13 @@
-﻿using APICatalogo.Models;
+﻿using APICatalogo.DTOs;
+using APICatalogo.Models;
+using APICatalogo.Pagination;
 using APICatalogo.Repository;
+using AutoMapper;
 using Microsoft.AspNetCore.Mvc;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text.Json;
 
 namespace APICatalogo.Controllers
 {
@@ -12,17 +16,22 @@ namespace APICatalogo.Controllers
     public class ProdutosController : ControllerBase
     {
         private readonly IUnitOfWork _uof;
-        public ProdutosController(IUnitOfWork contexto)
+        private readonly IMapper _mapper;
+        public ProdutosController(IUnitOfWork contexto, IMapper mapper)
         {
             _uof = contexto;
+            _mapper = mapper;
         }
 
         [HttpGet("menorpreco")]
-        public ActionResult<IEnumerable<Produto>> GetProdutosPorPreco()
+        public ActionResult<IEnumerable<ProdutoDTO>> GetProdutosPorPreco()
         {
             try
             {
-                return _uof.ProdutoRepository.GetProdutosPorPreco().ToList();
+                var produtos = _uof.ProdutoRepository.GetProdutosPorPreco().ToList();
+                var produtosDTO = _mapper.Map<List<ProdutoDTO>>(produtos);
+
+                return produtosDTO;
             }
             catch (Exception e)
             {
@@ -31,11 +40,26 @@ namespace APICatalogo.Controllers
         }
 
         [HttpGet]
-        public ActionResult<IEnumerable<Produto>> Get()
+        public ActionResult<IEnumerable<ProdutoDTO>> Get([FromQuery] ProdutosParameters produtoParameters)
         {
             try
             {
-                return _uof.ProdutoRepository.Get().ToList();
+                var produtos = _uof.ProdutoRepository.GetProdutos(produtoParameters);
+
+                var metadata = new
+                {
+                    produtos.TotalCount,
+                    produtos.PageSize,
+                    produtos.CurrentPage,
+                    produtos.TotalPages,
+                    produtos.HasNext,
+                    produtos.HasPrevious,
+                };
+
+                Response.Headers.Add("X-Pagination", JsonSerializer.Serialize(metadata));
+
+                var produtosDTO = _mapper.Map<List<ProdutoDTO>>(produtos);
+                return produtosDTO;
             }
             catch (Exception)
             {
@@ -44,7 +68,7 @@ namespace APICatalogo.Controllers
         }
 
         [HttpGet("{id}", Name = "ObterProduto")]
-        public ActionResult<Produto> Get(int id)
+        public ActionResult<ProdutoDTO> Get(int id)
         {
             try
             {
@@ -53,7 +77,9 @@ namespace APICatalogo.Controllers
                 {
                     return NotFound("Produto nao encontrado.");
                 }
-                return produto;
+
+                var produtosDTO = _mapper.Map<ProdutoDTO>(produto);
+                return produtosDTO;
             }
             catch (Exception)
             {
@@ -63,7 +89,7 @@ namespace APICatalogo.Controllers
         }
 
         [HttpPost]
-        public ActionResult Post([FromBody] Produto produto)
+        public ActionResult Post([FromBody] ProdutoDTO produtoDto)
         {
             try
             {
@@ -73,10 +99,13 @@ namespace APICatalogo.Controllers
                 //{
                 //    return BadRequest(ModelState);
                 //}
+                var produto = _mapper.Map<Produto>(produtoDto);
 
                 _uof.ProdutoRepository.Add(produto);
                 _uof.Commit();
-                return new CreatedAtRouteResult("ObterProduto", new { id = produto.Id }, produto);
+
+                var produtoDTO = _mapper.Map<ProdutoDTO>(produto);
+                return new CreatedAtRouteResult("ObterProduto", new { id = produto.Id }, produtoDTO);
             }
             catch (Exception)
             {
@@ -85,14 +114,16 @@ namespace APICatalogo.Controllers
         }
 
         [HttpPut("{id}")]
-        public ActionResult Put(int id, [FromBody] Produto produto)
+        public ActionResult Put(int id, [FromBody] ProdutoDTO produtoDto)
         {
             try
             {
-                if (id != produto.Id)
+                if (id != produtoDto.Id)
                 {
                     return BadRequest($"Não foi possível atualizar o produto id={id}");
                 }
+
+                var produto = _mapper.Map<Produto>(produtoDto);
 
                 _uof.ProdutoRepository.Update(produto);
                 _uof.Commit();
@@ -105,7 +136,7 @@ namespace APICatalogo.Controllers
         }
 
         [HttpDelete("{id}")]
-        public ActionResult<Produto> Delete(int id)
+        public ActionResult<ProdutoDTO> Delete(int id)
         {
             try
             {
@@ -121,7 +152,9 @@ namespace APICatalogo.Controllers
 
                 _uof.ProdutoRepository.Delete(produto);
                 _uof.Commit();
-                return produto;
+
+                var produtoDto = _mapper.Map<ProdutoDTO>(produto);
+                return produtoDto;
             }
             catch (Exception)
             {

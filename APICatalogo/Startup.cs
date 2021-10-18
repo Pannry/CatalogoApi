@@ -10,6 +10,8 @@ using Microsoft.AspNetCore.Http;
 using System.Text.Json.Serialization;
 using APICatalogo.Filters;
 using APICatalogo.Repository;
+using AutoMapper;
+using APICatalogo.DTOs.Mappings;
 
 namespace APICatalogo
 {
@@ -46,6 +48,7 @@ namespace APICatalogo
             services.AddDbContext<AppDbContext>(options =>
                 options.UseSqlite(connection)
             );
+
             services.AddControllers();
             services.AddSwaggerGen(c =>
             {
@@ -61,6 +64,14 @@ namespace APICatalogo
 
             services.AddScoped<ApiLoggingFilter>();
             services.AddScoped<IUnitOfWork, UnitOfWork>();
+
+            // Configurando Mapper
+            var mappingConfig = new MapperConfiguration(mc =>
+            {
+                mc.AddProfile(new MappingProfile());
+            });
+            IMapper mapper = mappingConfig.CreateMapper();
+            services.AddSingleton(mapper);
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
