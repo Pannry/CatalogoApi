@@ -4,6 +4,7 @@ using System.Text.Json;
 using System.Collections.Generic;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
+using Microsoft.AspNetCore.Authorization;
 using AutoMapper;
 using APICatalogo.Context;
 using APICatalogo.Models;
@@ -14,6 +15,7 @@ using APICatalogo.DTOs;
 
 namespace APICatalogo.Controllers
 {
+    [Authorize(AuthenticationSchemes = "Bearer")]
     [ApiController]
     [Route("api/[Controller]")]
     public class CategoriasController : ControllerBase

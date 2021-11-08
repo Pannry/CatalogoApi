@@ -38,6 +38,7 @@ namespace APICatalogo.Models
         public string Descricao { get; set; }
         
         [Required]
+        // [Column(TypeName ="decimal(8,2)")] // Para o tipo decimal
         public float Preco { get; set; }
         
         [Required]
