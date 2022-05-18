@@ -17,9 +17,9 @@ namespace ApiCatalogo._6.Repository
                         categoriasParameters.PageNumber, categoriasParameters.PageSize);
         }
 
-        public IEnumerable<Categoria> GetCategoriasProdutos()
+        public async Task<IEnumerable<Categoria>> GetCategoriasProdutos()
         {
-            return Get().Include(c => c.Produtos);
+            return await Get().Include(c => c.Produtos).ToListAsync();
         }
     }
 }

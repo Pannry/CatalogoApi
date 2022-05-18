@@ -1,6 +1,7 @@
 ﻿using ApiCatalogo._6.Context;
 using ApiCatalogo._6.Models;
 using ApiCatalogo._6.Pagination;
+using Microsoft.EntityFrameworkCore;
 
 namespace ApiCatalogo._6.Repository
 {
@@ -23,9 +24,9 @@ namespace ApiCatalogo._6.Repository
                 .OrderBy(on => on.CategoriaId), produtosParameters.PageNumber, produtosParameters.PageSize);
         }
 
-        public IEnumerable<Produto> GetProdutosPorPreco()
+        public async Task<IEnumerable<Produto>> GetProdutosPorPreco()
         {
-            return Get().OrderBy(c => c.Preco).ToList();
+            return await Get().OrderBy(c => c.Preco).ToListAsync();
         }
     }
 }
