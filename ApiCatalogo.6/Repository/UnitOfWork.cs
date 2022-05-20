@@ -40,7 +40,7 @@ namespace ApiCatalogo._6.Repository
 
         public async Task Commit()
         {
-            _context.SaveChangesAsync();
+            await _context.SaveChangesAsync();
         }
 
         public void Dispose()

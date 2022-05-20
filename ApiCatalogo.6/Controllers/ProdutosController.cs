@@ -1,14 +1,15 @@
-﻿using ApiCatalogo._6.Context;
-using ApiCatalogo._6.DTOs;
+﻿using ApiCatalogo._6.DTOs;
 using ApiCatalogo._6.Models;
 using ApiCatalogo._6.Pagination;
 using ApiCatalogo._6.Repository;
 using AutoMapper;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.Text.Json;
 
 namespace ApiCatalogo._6.Controllers
 {
+    [Authorize(AuthenticationSchemes = "Bearer")]
     [ApiController]
     [Route("[controller]")]
     public class ProdutosController : ControllerBase
@@ -57,8 +58,8 @@ namespace ApiCatalogo._6.Controllers
         public async Task<ActionResult<ProdutoDTO>> Get(int id)
         {
             var produto = await _uof.ProdutoRepository.GetById(p => p.ProdutoId == id);
-           
-            if(produto == null)
+
+            if (produto == null)
                 return NotFound("Produto não encontrado");
 
             return _mapper.Map<ProdutoDTO>(produto);
@@ -85,7 +86,7 @@ namespace ApiCatalogo._6.Controllers
 
             // CreatedAtRouteResult se o produto for cadastrado no banco, retorne os valores
             // cadastrados pela rota onde possui o GET com a propriedade Name = "ObterProduto"
-            return new CreatedAtRouteResult("ObterProduto", new {id = produto.ProdutoId}, produtoDTO);
+            return new CreatedAtRouteResult("ObterProduto", new { id = produto.ProdutoId }, produtoDTO);
         }
 
 

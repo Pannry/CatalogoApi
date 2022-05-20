@@ -1,18 +1,19 @@
-﻿using ApiCatalogo._6.Context;
-using ApiCatalogo._6.DTOs;
+﻿using ApiCatalogo._6.DTOs;
 using ApiCatalogo._6.Models;
 using ApiCatalogo._6.Pagination;
 using ApiCatalogo._6.Repository;
 using AutoMapper;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
 using System.Text.Json;
 
 namespace ApiCatalogo._6.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
-    public class CategoriasController: ControllerBase
+    [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
+    public class CategoriasController : ControllerBase
     {
         private readonly IUnitOfWork _uof;
         private readonly IMapper _mapper;
@@ -29,7 +30,7 @@ namespace ApiCatalogo._6.Controllers
             try
             {
                 var categorias = await _uof.CategoriaRepository.GetCategorias(categoriasParameters);
-                
+
                 var metadata = new
                 {
                     categorias.TotalCount,
