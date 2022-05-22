@@ -1,9 +1,10 @@
 # .NET Core build folders
 .vs
-APICatalogo/bin/
-APICatalogo/obj/
-APICatalogo/Catalogo.db
 
-APICatalogo.6/bin/
-APICatalogo.6/obj/
-APICatalogo.6/Catalogo.db
+**/bin/
+**/obj/
+
+# Banco de dados
+**/*.db
+**/*.db-shm
+**/*.db-wal
