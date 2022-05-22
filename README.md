@@ -6,9 +6,10 @@ https://www.udemy.com/course/curso-web-api-asp-net-core-essencial/
 
 Gerando migração:
 
+```
 cd Catalogo6.Infrastructure/
 dotnet ef migrations add InitialMigration --startup-project ../Catalogo6.API/
-
+```
 
 <!---
 ---
